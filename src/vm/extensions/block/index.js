@@ -1,8 +1,8 @@
 import BlockType from '../../extension-support/block-type';
-import ArgumentType from '../../extension-support/argument-type';
-import Cast from '../../util/cast';
+// import Cast from '../../util/cast';
 import translations from './translations.json';
 import blockIcon from './block-icon.png';
+import {embed, setModelAssetPath, modelAssetPath, cosineSimilarity} from './image-embedder.js';
 
 /**
  * Formatter which is used for translation.
@@ -112,21 +112,60 @@ class ExtensionBlocks {
             showStatusButton: false,
             blocks: [
                 {
-                    opcode: 'do-it',
-                    blockType: BlockType.REPORTER,
-                    blockAllThreads: false,
+                    opcode: 'embedImage',
                     text: formatMessage({
-                        id: 'mpImgEmbed.doIt',
-                        default: 'do it [SCRIPT]',
-                        description: 'execute javascript for example'
+                        id: 'mpImgEmbed.embedImage',
+                        default: 'embed [IMAGE]'
                     }),
-                    func: 'doIt',
+                    blockType: BlockType.REPORTER,
                     arguments: {
-                        SCRIPT: {
-                            type: ArgumentType.STRING,
-                            defaultValue: '3 + 4'
+                        IMAGE: {
+                            type: 'string',
+                            defaultValue: 'data:image/png;base64,AAA'
                         }
                     }
+                },
+                {
+                    opcode: 'cosineSimilarity',
+                    text: formatMessage({
+                        id: 'mpImgEmbed.cosineSimilarity',
+                        default: 'cosine similarity of [VECTOR1] and [VECTOR2]'
+                    }),
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        VECTOR1: {
+                            type: 'string',
+                            defaultValue: '0.1, 0.2, 0.3'
+                        },
+                        VECTOR2: {
+                            type: 'string',
+                            defaultValue: '0.1, 0.2, 0.3'
+                        }
+                    }
+                },
+                '---',
+                {
+                    opcode: 'setModelPath',
+                    text: formatMessage({
+                        id: 'mpImgEmbed.setModelPath',
+                        default: 'set model asset path to [PATH]'
+                    }),
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        PATH: {
+                            type: 'string',
+                            defaultValue: modelAssetPath
+                        }
+                    }
+                },
+                {
+                    opcode: 'getModelPath',
+                    text: formatMessage({
+                        id: 'mpImgEmbed.getModelPath',
+                        default: 'get model asset path'
+                    }),
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: true
                 }
             ],
             menus: {
@@ -134,11 +173,76 @@ class ExtensionBlocks {
         };
     }
 
-    doIt (args) {
-        const statement = Cast.toString(args.SCRIPT);
-        const func = new Function(`return (${statement})`);
-        console.log(`doIt: ${statement}`);
-        return func.call(this);
+    /**
+     * Embed the given image and return the embedding vector.
+     * @param {object} args - block arguments
+     * @param {string | number} args.IMAGE - image (costume name or number, or data URL)
+     * @returns {Promise<Float32Array | string>} - embedding vector or empty string if error.
+     */
+    embedImage (args) {
+        const imageDataURL = args.IMAGE;
+        return new Promise((resolve, reject) => {
+            const image = new Image();
+            image.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = image.width;
+                canvas.height = image.height;
+                const context = canvas.getContext('2d');
+                context.drawImage(image, 0, 0);
+                const imageData = context.getImageData(0, 0, image.width, image.height);
+                const embedding = embed(imageData);
+                resolve(embedding);
+            };
+            image.onerror = err => {
+                reject(err);
+            };
+            image.src = imageDataURL;
+        })
+            .then(embedding => JSON.stringify(embedding).slice(1, -1)) // remove '[' and ']'
+            .catch(err => {
+                console.error(err);
+                return '';
+            });
+    }
+
+    /**
+     * Set the model asset path for hand detection.
+     * @param {object} args - the block arguments
+     * @param {string} args.PATH - the model asset path
+     * @returns {Promise} - a promise that resolve when the model set
+     */
+    setModelPath (args) {
+        const path = args.PATH.trim();
+        if (!path) return;
+        return setModelAssetPath(path)
+            .then(() => 'Model asset path set successfully')
+            .catch(e => {
+                console.error(e);
+                return e.message;
+            });
+    }
+
+    /**
+     * Get the model asset path.
+     * @returns {string} - the model asset path
+     */
+    getModelPath () {
+        return modelAssetPath;
+    }
+
+    /**
+     * Compute cosine similarity between two vectors.
+     * @param {object} args - block arguments
+     * @param {string | number} args.VECTOR1 - first vector (comma-separated values)
+     * @param {string | number} args.VECTOR2 - second vector (comma-separated values)
+     * @returns {number} - cosine similarity
+     */
+    cosineSimilarity (args) {
+        const vector1 = args.VECTOR1.split(',').map(v => parseFloat(v.trim()));
+        const vector2 = args.VECTOR2.split(',').map(v => parseFloat(v.trim()));
+        if (vector1.length === 0 || vector2.length === 0) return '';
+        if (vector1.length !== vector2.length) return '';
+        return cosineSimilarity(vector1, vector2);
     }
 }
 

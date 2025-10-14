@@ -27,7 +27,7 @@ const entry = {
     },
     extensionId: 'mpImgEmbed',
     extensionURL: 'https://yokobond.github.io/xcx-mp-imgembed/dist/mpImgEmbed.mjs',
-    collaborator: 'yokobond',
+    collaborator: 'Koji Yokokawa',
     iconURL: iconURL,
     insetIconURL: insetIconURL,
     get description () {
@@ -37,7 +37,7 @@ const entry = {
             id: 'xcratchExample.entry.description'
         })} (${version})`;
     },
-    tags: [],
+    tags: ['ai', 'image', 'machine learning', 'ml', 'mediapipe', 'vision'],
     featured: true,
     disabled: false,
     bluetoothRequired: false,
