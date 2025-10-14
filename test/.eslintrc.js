@@ -8,6 +8,7 @@ module.exports = {
     "jest/globals": true,
   },
   parserOptions: {
+    ecmaVersion: 2020,
     sourceType: "module",
   },
 };
