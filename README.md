@@ -7,7 +7,7 @@ This extension provides blocks to create embeddings from images using MediaPipe'
 ## ✨ What You Can Do With This Extension
 
 Play [Example Project](https://xcratch.github.io/editor/#https://yokobond.github.io/xcx-mp-imgembed/projects/example.sb3) to look at what you can do with "Image Embedding" extension. 
-<iframe src="https://xcratch.github.io/editor/player#https://yokobond.github.io/xcx-mp-imgembed/projects/example.sb3" width="540px" height="460px"></iframe>
+<iframe src="https://xcratch.github.io/editor/player#https://yokobond.github.io/xcx-mp-imgembed/projects/example.sb3" width="540px" height="460px" allow="camera"></iframe>
 
 ### Example Project
 
