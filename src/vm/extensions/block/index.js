@@ -176,7 +176,7 @@ class ExtensionBlocks {
     /**
      * Embed the given image and return the embedding vector.
      * @param {object} args - block arguments
-     * @param {string | number} args.IMAGE - image (costume name or number, or data URL)
+     * @param {string | number} args.IMAGE - image data URL
      * @returns {Promise<Float32Array | string>} - embedding vector or empty string if error.
      */
     embedImage (args) {
